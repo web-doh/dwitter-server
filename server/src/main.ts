@@ -6,7 +6,10 @@ import express, {
   urlencoded,
 } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import logger from "morgan";
+import tweetsRouter from "./routes/tweets/tweets";
+import authRouter from "./routes/auth/auth";
 
 const app = express();
 
@@ -15,6 +18,8 @@ app.use(logger("tiny"));
 app.use(json());
 app.use(urlencoded({ extended: false }));
 
+app.use("/tweets", tweetsRouter);
+app.use("/auth", authRouter);
 app.use((req, res, next) => {
   res.sendStatus(404);
 });
