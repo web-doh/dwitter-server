@@ -8,8 +8,8 @@ import express, {
 import cors from "cors";
 import helmet from "helmet";
 import logger from "morgan";
-import tweetsRouter from "./routes/tweets/tweets";
-import authRouter from "./routes/auth/auth";
+import tweetsRouter from "./routes/tweets";
+import authRouter from "./routes/auth";
 
 const app = express();
 
@@ -30,5 +30,5 @@ app.use((err: any, req: Request, res: Response, nex: NextFunction) => {
 });
 
 app.listen(8080, () => {
-  console.log(`server on `);
+  console.log(`server on`);
 });
