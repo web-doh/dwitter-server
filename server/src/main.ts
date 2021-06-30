@@ -10,6 +10,7 @@ import helmet from "helmet";
 import logger from "morgan";
 import tweetsRouter from "./routes/tweets";
 import authRouter from "./routes/auth";
+import { config } from "./config";
 
 const app = express();
 
@@ -29,6 +30,6 @@ app.use((err: any, req: Request, res: Response, nex: NextFunction) => {
   res.sendStatus(500);
 });
 
-app.listen(8080, () => {
+app.listen(config.host.port, () => {
   console.log(`server on`);
 });

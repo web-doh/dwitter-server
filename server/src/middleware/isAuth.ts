@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { config } from "../config";
 import { AuthRequest } from "../@customTypes/express";
 import * as userRepository from "../model/users";
 import { errorGenerator } from "../util/response";
@@ -20,22 +21,18 @@ export const isAuth = async (
   const token = authHeader.split(" ")[1];
 
   // TODO: Make it secure!
-  jwt.verify(
-    token,
-    "F2dN7x8HVzBWaQuEEDnhsvHXRWqAR63z",
-    async (error, decoded) => {
-      if (error) {
-        return errorGenerator(res, 401, AUTH_ERROR.message);
-      }
-      const user = await userRepository.findById(decoded?.userId);
-
-      if (!user) {
-        return errorGenerator(res, 401, AUTH_ERROR.message);
-      }
-      req.userId = user.id;
-      req.token = token;
-
-      next();
+  jwt.verify(token, config.jwt.secretKey, async (error, decoded) => {
+    if (error) {
+      return errorGenerator(res, 401, AUTH_ERROR.message);
     }
-  );
+    const user = await userRepository.findById(decoded?.userId);
+
+    if (!user) {
+      return errorGenerator(res, 401, AUTH_ERROR.message);
+    }
+    req.userId = user.id;
+    req.token = token;
+
+    next();
+  });
 };

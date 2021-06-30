@@ -4,29 +4,19 @@ import jwt from "jsonwebtoken";
 import { errorGenerator, respond } from "../util/response";
 import * as userRepository from "../model/users";
 import { AuthRequest } from "../@customTypes/express";
+import { config } from "../config";
 
-type resUser = {
-  username: string;
-  token: string;
-  profile_url?: string;
+const hashPassword = async (password: string) => {
+  return bcrypt.hash(password, config.bcrypt.saltRounds);
 };
 
-// 나중에 옮길 것
-const jwtSecretKey = "F2dN7x8HVzBWaQuEEDnhsvHXRWqAR63z";
-const jwtExpires = "2d";
-const bcryptSaltRounds = 12;
-
-const hashPassword = (password: string) => {
-  return bcrypt.hash(password, bcryptSaltRounds);
-};
-
-const isValidPassword = (password: string, hashed: string) => {
+const isValidPassword = async (password: string, hashed: string) => {
   return bcrypt.compare(password, hashed);
 };
 
-const createJwtToken = (userId: string) => {
-  return jwt.sign({ userId }, jwtSecretKey, {
-    expiresIn: jwtExpires,
+const createJwtToken = async (userId: string) => {
+  return jwt.sign({ userId }, config.jwt.secretKey, {
+    expiresIn: config.jwt.expires,
   });
 };
 
@@ -35,7 +25,13 @@ const createJwtToken = (userId: string) => {
  */
 export const signup: RequestHandler = async (req, res) => {
   try {
-    const { username, password, name, email, profile_url } = req.body;
+    const {
+      username,
+      password1: password,
+      name,
+      email,
+      profile_url,
+    } = req.body;
     const found = await userRepository.findByUsername(username);
 
     if (found) {
@@ -50,9 +46,9 @@ export const signup: RequestHandler = async (req, res) => {
       profile_url,
     });
 
-    const token = createJwtToken(newUserId);
+    const token = await await createJwtToken(newUserId);
 
-    respond(res, { username, token }, 201);
+    respond(res, { username, token, profile_url }, 201);
   } catch (err) {
     return errorGenerator(res);
   }
@@ -70,12 +66,12 @@ export const login: RequestHandler = async (req, res, next) => {
       return errorGenerator(res, 401, "Invalid user or password");
     }
 
-    if (!isValidPassword(password, user.password)) {
+    if (!(await isValidPassword(password, user.password))) {
       return errorGenerator(res, 401, "Invalid user or password");
     }
-    const token = createJwtToken(user.id);
+    const token = await createJwtToken(user.id);
 
-    return respond(res, { username, token });
+    return respond(res, { username, token, profile_url: user?.profile_url });
   } catch (err) {
     console.log("login failed!", err);
 
@@ -94,7 +90,11 @@ export const me: RequestHandler = async (req: AuthRequest, res) => {
       return errorGenerator(res, 404, "User not found");
     }
 
-    return respond(res, { token: req.token, username: user.username });
+    return respond(res, {
+      token: req.token,
+      username: user.username,
+      profile_url: user?.profile_url,
+    });
   } catch (err) {
     return errorGenerator(res);
   }

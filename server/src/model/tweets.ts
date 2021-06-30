@@ -6,7 +6,7 @@ export type tweet = {
   name: string;
   body: string;
   created_at: string;
-  modified_at: string;
+  modified_at: string | null;
   profile_url?: string;
   userId: string;
 };
@@ -15,7 +15,7 @@ export type tweets = Array<{
   id: string;
   body: string;
   created_at: string;
-  modified_at: string;
+  modified_at: string | null;
   userId: string;
 }>;
 
@@ -94,7 +94,7 @@ export const create = async (
     id: Math.max(...initialTweets.map((t) => +t.id)) + 1 + "",
     body,
     created_at: new Date().toISOString(),
-    modified_at: new Date().toISOString(),
+    modified_at: null,
     userId,
   };
   initialTweets = [tweet, ...initialTweets];
@@ -108,6 +108,7 @@ export const update = async (
   const tweet = initialTweets.find((tweet) => tweet.id === id);
   if (tweet) {
     tweet.body = body;
+    tweet.modified_at = new Date().toISOString();
   } else {
     return null;
   }
