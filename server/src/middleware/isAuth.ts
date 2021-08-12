@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import { config } from "../config";
 import { AuthRequest } from "../@customTypes/express";
@@ -20,7 +20,6 @@ export const isAuth = async (
 
   const token = authHeader.split(" ")[1];
 
-  // TODO: Make it secure!
   jwt.verify(token, config.jwt.secretKey, async (error, decoded) => {
     if (error) {
       return errorGenerator(res, 401, AUTH_ERROR.message);

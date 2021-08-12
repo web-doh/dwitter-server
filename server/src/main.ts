@@ -1,12 +1,5 @@
-import express, {
-  json,
-  NextFunction,
-  Request,
-  Response,
-  urlencoded,
-} from "express";
+import express, { json, Request, Response, urlencoded } from "express";
 import cors from "cors";
-import helmet from "helmet";
 import logger from "morgan";
 import tweetsRouter from "./routes/tweets";
 import authRouter from "./routes/auth";
@@ -25,11 +18,9 @@ app.use((req, res, next) => {
   res.sendStatus(404);
 });
 
-app.use((err: any, req: Request, res: Response, nex: NextFunction) => {
+app.use((err: any, req: Request, res: Response) => {
   console.error(err);
   res.sendStatus(500);
 });
 
-app.listen(config.host.port, () => {
-  console.log(`server on`);
-});
+app.listen(config.host.port);

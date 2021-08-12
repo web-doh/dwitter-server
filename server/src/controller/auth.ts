@@ -14,7 +14,7 @@ const isValidPassword = async (password: string, hashed: string) => {
   return bcrypt.compare(password, hashed);
 };
 
-const createJwtToken = async (userId: string) => {
+const createJwtToken = async (userId: number) => {
   return jwt.sign({ userId }, config.jwt.secretKey, {
     expiresIn: config.jwt.expires,
   });
@@ -32,8 +32,8 @@ export const signup: RequestHandler = async (req, res) => {
       email,
       profile_url,
     } = req.body;
-    const found = await userRepository.findByUsername(username);
 
+    const found = await userRepository.findByUsername(username);
     if (found) {
       return errorGenerator(res, 409, "already exists");
     }
@@ -45,8 +45,8 @@ export const signup: RequestHandler = async (req, res) => {
       email,
       profile_url,
     });
-
-    const token = await await createJwtToken(newUserId);
+    console.log(newUserId, " id");
+    const token = await createJwtToken(newUserId);
 
     respond(res, { username, token, profile_url }, 201);
   } catch (err) {
@@ -84,7 +84,7 @@ export const login: RequestHandler = async (req, res, next) => {
  */
 export const me: RequestHandler = async (req: AuthRequest, res) => {
   try {
-    const id = req.userId || "";
+    const id = req.userId || -1;
     const user = await userRepository.findById(id);
     if (!user) {
       return errorGenerator(res, 404, "User not found");

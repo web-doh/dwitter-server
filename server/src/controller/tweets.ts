@@ -3,8 +3,6 @@ import { AuthRequest } from "../@customTypes/express";
 import * as tweetRepository from "../model/tweets";
 import { errorGenerator, respond } from "../util/response";
 
-// type result = tweet | Array<tweet> | number;
-
 /**
   Send all tweets: GET /tweets
   Send tweets by username: GET /tweets/:username
@@ -30,7 +28,8 @@ export const createTweet: RequestHandler = async (req: AuthRequest, res) => {
   const { body } = req.body;
 
   try {
-    const tweet = await tweetRepository.create(body, req.userId || "");
+    const tweet = await tweetRepository.create(body, req.userId as number);
+
     return respond(res, tweet, 201);
   } catch (err) {
     return errorGenerator(res);
@@ -41,7 +40,7 @@ export const createTweet: RequestHandler = async (req: AuthRequest, res) => {
   Edit tweets: PUT /tweets/:id
  */
 export const editTweet: RequestHandler = async (req: AuthRequest, res) => {
-  const id = req.params.id;
+  const id: number = +req.params.id;
   const { body } = req.body;
 
   try {
@@ -67,7 +66,7 @@ export const editTweet: RequestHandler = async (req: AuthRequest, res) => {
  */
 
 export const deleteTweet: RequestHandler = async (req: AuthRequest, res) => {
-  const id = req.params.id;
+  const id: number = +req.params.id;
 
   try {
     const tweet = await tweetRepository.getOne(id);
