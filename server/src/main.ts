@@ -1,3 +1,4 @@
+import { db } from "./db/database";
 import express, { json, Request, Response, urlencoded } from "express";
 import cors from "cors";
 import logger from "morgan";
@@ -23,4 +24,5 @@ app.use((err: any, req: Request, res: Response) => {
   res.sendStatus(500);
 });
 
+db.getConnection().then((con) => con.release());
 app.listen(config.host.port);

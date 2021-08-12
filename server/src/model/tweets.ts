@@ -1,120 +1,66 @@
-import { user, users } from "./users";
+import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { db } from "./../db/database";
 
 export type tweet = {
-  id: string;
+  id: number;
   username: string;
   name: string;
   body: string;
   created_at: string;
   modified_at: string | null;
   profile_url?: string;
-  userId: string;
+  userId: number;
 };
 
-export type tweets = Array<{
-  id: string;
-  body: string;
-  created_at: string;
-  modified_at: string | null;
-  userId: string;
-}>;
-
-export let initialTweets: tweets = [
-  {
-    id: "1",
-    body: "드림코딩에서 강의 들으면 너무 좋으다",
-    created_at: "2021-05-09T04:20:57.000Z",
-    modified_at: "2021-05-11T04:20:57.000Z",
-    userId: "1",
-  },
-  {
-    id: "2",
-    body: "안녕!",
-    created_at: "2021-06-02T04:20:57.000Z",
-    modified_at: "2021-06-02T04:20:57.000Z",
-    userId: "2",
-  },
-  {
-    id: "3",
-
-    body: "주말!",
-    created_at: "2021-06-03T04:20:57.000Z",
-    modified_at: "2021-06-04T04:20:57.000Z",
-    userId: "1",
-  },
-  {
-    id: "4",
-    body: "오늘도 좋은 하루!",
-    created_at: "2021-06-04T10:20:57.000Z",
-    modified_at: "2021-06-04T10:20:57.000Z",
-    userId: "3",
-  },
-  {
-    id: "5",
-    body: "젤리좋아",
-    created_at: "2020-06-04T20:20:57.000Z",
-    modified_at: "2020-06-04T20:20:57.000Z",
-    userId: "3",
-  },
-];
-
+const SELECT_JOIN =
+  "SELECT tw.id, tw.body, tw.created_at, tw.modified_at, tw.userId, us.username, us.name, us.profile_url FROM tweets as tw JOIN users as us ON tw.userId=us.id";
+const ORDER_DESC = "ORDER BY tw.created_at DESC";
 export const getAll = async (): Promise<Array<tweet>> => {
-  return initialTweets.map((tweet) => {
-    const { username, name, profile_url } = users.find(
-      (user) => user.id === tweet.userId
-    ) as user;
-    return { ...tweet, username, name, profile_url };
-  });
+  return db
+    .execute(`${SELECT_JOIN} ${ORDER_DESC}`) //
+    .then((result) => (result as RowDataPacket)[0]);
 };
 
 export const getAllByUsername = async (
   username: string
 ): Promise<Array<tweet>> => {
-  return getAll().then((tweets) =>
-    tweets.filter((tweet) => tweet.username === username)
-  );
+  return db
+    .execute(`${SELECT_JOIN} WHERE username=? ${ORDER_DESC}`, [username]) //
+    .then((result) => (result as RowDataPacket)[0]);
 };
 
-export const getOne = async (id: string): Promise<tweet | null> => {
-  const found = initialTweets.find((tweet) => tweet.id === id);
-  if (!found) {
-    return null;
-  }
-  const { username, name, profile_url } = (await users.find(
-    (user) => user.id === found.userId
-  )) as user;
-  return { ...found, username, name, profile_url };
+export const getOne = async (id: number): Promise<tweet | null> => {
+  return db
+    .execute(`${SELECT_JOIN} WHERE tw.id=?`, [id]) //
+    .then((result) => (result[0] as RowDataPacket)[0]);
 };
 
 export const create = async (
   body: string,
-  userId: string
+  userId: number
 ): Promise<tweet | null> => {
-  const tweet = {
-    id: Math.max(...initialTweets.map((t) => +t.id)) + 1 + "",
-    body,
-    created_at: new Date().toISOString(),
-    modified_at: null,
-    userId,
-  };
-  initialTweets = [tweet, ...initialTweets];
-  return getOne(tweet.id);
+  return db
+    .execute("INSERT INTO tweets (body, created_at, userId) VALUES(?, ?, ?)", [
+      body,
+      new Date(),
+      userId,
+    ])
+    .then((result) => getOne((result[0] as ResultSetHeader).insertId));
 };
 
 export const update = async (
-  id: string,
+  id: number,
   body: string
 ): Promise<tweet | null> => {
-  const tweet = initialTweets.find((tweet) => tweet.id === id);
-  if (tweet) {
-    tweet.body = body;
-    tweet.modified_at = new Date().toISOString();
-  } else {
-    return null;
-  }
-  return getOne(tweet.id);
+  return db
+    .execute("UPDATE tweets SET body=?, modified_at=? WHERE id=?", [
+      body,
+      new Date(),
+      id,
+    ])
+    .then(() => getOne(id));
 };
 
-export const remove = async (id: string) => {
-  initialTweets = initialTweets.filter((tweet) => tweet.id !== id);
+export const remove = async (id: number) => {
+  return db.execute("DELETE FROM tweets WHERE id=?", [id]);
 };
