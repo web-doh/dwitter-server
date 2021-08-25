@@ -12,13 +12,24 @@ export const isAuth = async (
   res: Response,
   next: NextFunction
 ) => {
+  // 1. Cookie (for Browser)
+  // 2. Header (for Non-Browser)
+  let token: string = "";
+  // header에 토큰있는지 확인
   const authHeader = req.get("Authorization");
 
-  if (!(authHeader && authHeader.startsWith("Bearer "))) {
-    return errorGenerator(res, 401, AUTH_ERROR.message);
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
   }
 
-  const token = authHeader.split(" ")[1];
+  // header에 토큰 없으면, 쿠키 확인
+  if (!token) {
+    token = req.cookies["token"];
+  }
+
+  if (!token) {
+    return errorGenerator(res, 401, AUTH_ERROR.message);
+  }
 
   jwt.verify(token, config.jwt.secretKey, async (error, decoded) => {
     if (error) {
