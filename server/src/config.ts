@@ -33,4 +33,9 @@ export const config = {
     database: required("DB_DATABASE"),
     password: required("DB_PASSWORD"),
   },
+
+  rateLimit: {
+    windowMs: 60 * 1000, // ms
+    maxRequest: 100, // ip 별로 제한
+  },
 };

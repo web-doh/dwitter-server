@@ -7,6 +7,7 @@ import authRouter from "./routes/auth";
 import { config } from "./config";
 import { db } from "./db/database";
 import { csrfCheck } from "./middleware/csrf";
+import rateLimit from "./middleware/rate-limiter";
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(logger("tiny"));
 app.use(json());
 app.use(cookieParser()); // httpOnly 쿠키를 위함
 app.use(urlencoded({ extended: false }));
+app.use(rateLimit);
 
 app.use(csrfCheck);
 app.use("/tweets", tweetsRouter);
