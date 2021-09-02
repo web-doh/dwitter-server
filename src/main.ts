@@ -23,10 +23,11 @@ app.use(json());
 app.use(cookieParser()); // httpOnly 쿠키를 위함
 app.use(urlencoded({ extended: false }));
 app.use(rateLimit);
-
 app.use(csrfCheck);
+
 app.use("/tweets", tweetsRouter);
 app.use("/auth", authRouter);
+
 app.use((req, res, next) => {
   res.sendStatus(404);
 });
@@ -37,4 +38,4 @@ app.use((err: any, req: Request, res: Response) => {
 });
 
 db.getConnection().then((con) => con.release());
-app.listen(config.host.port);
+app.listen(config.port, () => console.log(`Server is started...${new Date()}`));

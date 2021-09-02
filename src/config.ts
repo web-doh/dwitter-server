@@ -23,9 +23,8 @@ export const config = {
   csrf: {
     plainToken: required("CSRF_SECRET_KEY"),
   },
-  host: {
-    port: parseInt(required("HOST_PORT", "8080")),
-  },
+
+  port: parseInt(required("HOST_PORT", "8080")),
 
   db: {
     host: required("DB_HOST"),
