@@ -1,3 +1,4 @@
+import { Socket } from "./connection/socket";
 import express, { json, Request, Response, urlencoded } from "express";
 import cors from "cors";
 import logger from "morgan";
@@ -38,4 +39,8 @@ app.use((err: any, req: Request, res: Response) => {
 });
 
 db.getConnection().then((con) => con.release());
-app.listen(config.port, () => console.log(`Server is started...${new Date()}`));
+
+const server = app.listen(config.port, () =>
+  console.log(`Server is started.... ${new Date()}`)
+);
+Socket.init(server);

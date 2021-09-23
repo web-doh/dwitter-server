@@ -1,3 +1,4 @@
+import { Socket } from "./../connection/socket";
 import { RequestHandler } from "express";
 import { AuthRequest } from "../@customTypes/express";
 import * as tweetRepository from "../model/tweets";
@@ -29,6 +30,7 @@ export const createTweet: RequestHandler = async (req: AuthRequest, res) => {
 
   try {
     const tweet = await tweetRepository.create(body, req.userId as number);
+    Socket.getSoketIO().emit("tweets-post", tweet); // 새로운 트윗을 브로드캐스팅!
 
     return respond(res, tweet, 201);
   } catch (err) {
@@ -46,11 +48,11 @@ export const editTweet: RequestHandler = async (req: AuthRequest, res) => {
   try {
     const tweet = await tweetRepository.getOne(id);
     if (!tweet) {
-      return errorGenerator(res, 404, `Tweet not found: ${id}`);
+      return errorGenerator(res, 404, `Tweet not found`);
     }
 
     if (tweet.userId !== req.userId) {
-      return errorGenerator(res, 403);
+      return errorGenerator(res, 403, "Author and login user do not match.");
     }
 
     const updated = await tweetRepository.update(id, body);
@@ -71,11 +73,11 @@ export const deleteTweet: RequestHandler = async (req: AuthRequest, res) => {
   try {
     const tweet = await tweetRepository.getOne(id);
     if (!tweet) {
-      return errorGenerator(res, 404, `Tweet not found: ${id}`);
+      return errorGenerator(res, 404, `Tweet not found.`);
     }
 
     if (tweet.userId !== req.userId) {
-      return res.sendStatus(403);
+      return errorGenerator(res, 403, "Author and login user do not match.");
     }
     await tweetRepository.remove(id);
 
