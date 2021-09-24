@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { errorGenerator, respond } from "../util/response";
-import * as userRepository from "../model/users";
+import * as userRepository from "../model/auth";
 import { AuthRequest } from "../@customTypes/express";
 import { config } from "../config";
 import { CookieOptions, Response } from "express-serve-static-core";

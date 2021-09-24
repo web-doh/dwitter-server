@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser";
 import tweetsRouter from "./routes/tweets";
 import authRouter from "./routes/auth";
 import { config } from "./config";
-import { db } from "./db/database";
+import { db, sequelize } from "./db/database";
 import { csrfCheck } from "./middleware/csrf";
 import rateLimit from "./middleware/rate-limiter";
 
@@ -38,9 +38,17 @@ app.use((err: any, req: Request, res: Response) => {
   res.sendStatus(500);
 });
 
-db.getConnection().then((con) => con.release());
+db.connect((err) => {
+  if (err) {
+    console.error("connection error", err.stack);
+  } else {
+    console.log("db connected!");
+  }
+});
 
-const server = app.listen(config.port, () =>
-  console.log(`Server is started.... ${new Date()}`)
-);
-Socket.init(server);
+sequelize.sync().then(() => {
+  const server = app.listen(config.port, () =>
+    console.log(`Server is started.... ${new Date()}`)
+  );
+  Socket.init(server);
+});

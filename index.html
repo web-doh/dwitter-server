@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로그인</title>
+  </head>
+  <body>
+    <div>
+      <form method="post" action="/01webex/user/login">
+        <div>
+          <input type="text" id="id" name="id" placeholder="아이디" />
+        </div>
+        <div>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="비밀번호"
+          />
+        </div>
+        <div>
+          <button type="submit">로그인</button>
+          <button id="regBtn" type="button">회원가입</button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      const regBtn = document.querySelector("#regBtn");
+      regBtn.addEventListener(
+        "click",
+        () => (location.href = "/01webex/user/joinForm.html")
+      );
+    </script>
+  </body>
+</html>

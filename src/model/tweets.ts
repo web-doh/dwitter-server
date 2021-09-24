@@ -1,5 +1,35 @@
-import { ResultSetHeader, RowDataPacket } from "mysql2";
-import { db } from "./../db/database";
+import SQ, { FindOptions } from "sequelize";
+import { sequelize } from "../db/database";
+import { User } from "./auth";
+
+const DataTypes = SQ.DataTypes;
+const Sequelize = SQ.Sequelize;
+
+export const Tweet = sequelize.define("tweet", {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true,
+    unique: true,
+  },
+  body: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+  },
+
+  create_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+
+  modified_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+});
+
+Tweet.belongsTo(User);
 
 export type tweet = {
   id: number;
@@ -12,55 +42,68 @@ export type tweet = {
   userId: number;
 };
 
-const SELECT_JOIN =
-  "SELECT tw.id, tw.body, tw.created_at, tw.modified_at, tw.userId, us.username, us.name, us.profile_url FROM tweets as tw JOIN users as us ON tw.userId=us.id";
-const ORDER_DESC = "ORDER BY tw.created_at DESC";
-export const getAll = async (): Promise<Array<tweet>> => {
-  return db
-    .execute(`${SELECT_JOIN} ${ORDER_DESC}`) //
-    .then((result) => (result as RowDataPacket)[0]);
+const INCLUDE_USER: FindOptions = {
+  attributes: [
+    "id",
+    "body",
+    "userId",
+    "created_at",
+    [Sequelize.col("user.username"), "username"],
+    [Sequelize.col("user.name"), "name"],
+    [Sequelize.col("user.profile_url"), "profile_url"],
+  ],
+
+  include: {
+    model: User,
+    attributes: [],
+  },
+};
+const ORDER_DESC: FindOptions = { order: [["created_at", "DESC"]] };
+
+export const getAll = async (): Promise<Array<any>> => {
+  return Tweet.findAll({ ...INCLUDE_USER, ...ORDER_DESC });
 };
 
 export const getAllByUsername = async (
   username: string
-): Promise<Array<tweet>> => {
-  return db
-    .execute(`${SELECT_JOIN} WHERE username=? ${ORDER_DESC}`, [username]) //
-    .then((result) => (result as RowDataPacket)[0]);
+): Promise<Array<any>> => {
+  return Tweet.findAll({
+    ...INCLUDE_USER,
+    ...ORDER_DESC,
+    include: {
+      model: User,
+      attributes: [],
+      where: { username },
+    },
+  });
 };
 
-export const getOne = async (id: number): Promise<tweet | null> => {
-  return db
-    .execute(`${SELECT_JOIN} WHERE tw.id=?`, [id]) //
-    .then((result) => (result[0] as RowDataPacket)[0]);
+export const getOne = async (id: number): Promise<any> => {
+  return Tweet.findOne({
+    ...INCLUDE_USER,
+    include: {
+      where: { id },
+    },
+  });
 };
 
-export const create = async (
-  body: string,
-  userId: number
-): Promise<tweet | null> => {
-  return db
-    .execute("INSERT INTO tweets (body, created_at, userId) VALUES(?, ?, ?)", [
-      body,
-      new Date(),
-      userId,
-    ])
-    .then((result) => getOne((result[0] as ResultSetHeader).insertId));
+export const create = async (body: string, userId: number): Promise<any> => {
+  return Tweet.create({ body, userId }).then((data) =>
+    getOne((data as any).dataValues.id)
+  );
 };
 
-export const update = async (
-  id: number,
-  body: string
-): Promise<tweet | null> => {
-  return db
-    .execute("UPDATE tweets SET body=?, modified_at=? WHERE id=?", [
-      body,
-      new Date(),
-      id,
-    ])
-    .then(() => getOne(id));
+export const update = async (id: number, body: string): Promise<any> => {
+  return Tweet.findByPk(id, INCLUDE_USER) //
+    .then((tweet) => {
+      (tweet as any).body = body;
+      return (tweet as any).save();
+    });
 };
 
 export const remove = async (id: number) => {
-  return db.execute("DELETE FROM tweets WHERE id=?", [id]);
+  return Tweet.findByPk(id) //
+    .then((tweet) => {
+      (tweet as any).destroy();
+    });
 };
