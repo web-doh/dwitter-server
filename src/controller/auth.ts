@@ -52,7 +52,7 @@ export const signup: RequestHandler = async (req, res) => {
       return errorGenerator(res, 409, "already exists");
     }
     const hashed = await hashPassword(password);
-    const newUserId = await userRepository.createUser({
+    const newUserId = await userRepository.create({
       username,
       password: hashed,
       name,
