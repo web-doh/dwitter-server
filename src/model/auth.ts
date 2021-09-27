@@ -1,5 +1,5 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2";
-import { db } from "./../db/database";
+import { db } from "../db/database";
 export type user = {
   id: number;
   username: string;
