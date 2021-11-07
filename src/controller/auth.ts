@@ -97,7 +97,12 @@ export const login: RequestHandler = async (req, res, next) => {
     Logout: POST /auth/logout
  */
 export const logout: RequestHandler = async (req: AuthRequest, res) => {
-  res.cookie("token", "");
+  const options: CookieOptions = {
+    sameSite: "none",
+    secure: true,
+  };
+
+  res.cookie("token", "", options);
   respond(res, { message: "Success Logout!" });
 };
 
